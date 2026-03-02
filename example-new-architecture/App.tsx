@@ -18,7 +18,7 @@ import {
   OpenFeatureProvider,
   useObjectFlagDetails,
 } from '@openfeature/react-sdk';
-import React, {Suspense} from 'react';
+import React, {Suspense, useCallback} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   ActivityIndicator,
@@ -29,6 +29,7 @@ import {
   Text,
   useColorScheme,
   View,
+  Pressable,
 } from 'react-native';
 
 import {
@@ -129,6 +130,14 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const handlePress = () => {
+    console.log('Press me');
+  };
+
+  const memoizedHandlePress = useCallback(() => {
+    console.log('Memoized Press me');
+  }, []);
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -148,6 +157,17 @@ function App(): React.JSX.Element {
             Evaluation reason is <Text style={styles.highlight}>{greetingFlag.reason}</Text>.{'\n\n'}Inspect <Text style={styles.highlight}>greetingFlag</Text> in{' '}
             <Text style={styles.highlight}>App.tsx</Text> for more evaluation
             details.
+          </Section>
+          <Section title="Tap me">
+            Tapping on "handler with unstable ref" works fine.{'\n\n'}
+            <Pressable onPress={handlePress}>
+              <Text>handler with unstable ref</Text>
+            </Pressable>
+            {'\n\n'}
+            Tapping on "handler with stable ref" crashes.{'\n\n'}
+            <Pressable onPress={memoizedHandlePress}>
+              <Text>handler with stable ref</Text>
+            </Pressable>
           </Section>
 
           <Section title="Step One">
