@@ -18,7 +18,7 @@ import {
   OpenFeatureProvider,
   useObjectFlagDetails,
 } from '@openfeature/react-sdk';
-import React, {Suspense} from 'react';
+import React, {Suspense, useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   ActivityIndicator,
@@ -31,6 +31,7 @@ import {
   View,
 } from 'react-native';
 
+import Svg, {Rect} from 'react-native-svg';
 import {
   Colors,
   DebugInstructions,
@@ -38,8 +39,37 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+import {
+  SessionReplay,
+  TextAndInputPrivacyLevel,
+  ImagePrivacyLevel,
+  TouchPrivacyLevel,
+} from '@datadog/mobile-react-native-session-replay';
 // @ts-ignore
 import {APPLICATION_ID, CLIENT_TOKEN, ENVIRONMENT} from './ddCredentials';
+
+const onSDKInitialized = async () => {
+  await SessionReplay.enable({
+    replaySampleRate: 100,
+    imagePrivacyLevel: ImagePrivacyLevel.MASK_NONE,
+    touchPrivacyLevel: TouchPrivacyLevel.SHOW,
+    textAndInputPrivacyLevel: TextAndInputPrivacyLevel.MASK_SENSITIVE_INPUTS,
+  });
+};
+
+const RectIcon = () => {
+  return (
+<Svg width="24" height="24">
+  <Rect
+    width="24"
+    height="12"
+    fill="rgb(0,0,255)"
+    strokeWidth="3"
+    stroke="rgb(0,0,0)"
+  />
+</Svg>
+  );
+}
 
 (async () => {
   const config = new CoreConfiguration(
@@ -129,6 +159,10 @@ function App(): React.JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  useEffect(() => {
+    onSDKInitialized();
+  }, []);
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -164,6 +198,16 @@ function App(): React.JSX.Element {
             Read the docs to discover what to do next:
           </Section>
           <LearnMoreLinks />
+
+          <Section title="SVG flexShrink Bug">
+            <Text>Icons below should be 24x24. With svgTracking enabled,{'\n'}
+            the babel plugin wraps SVGs in a View with flexShrink: 1,{'\n'}
+            causing them to shrink in constrained flex rows.</Text>
+          </Section>
+          <View style={styles.iconRow}>
+            <RectIcon />
+            <Text style={styles.iconLabel}>Long text that may overlap the icon</Text>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -216,6 +260,17 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginTop: 12,
+    width: 200,
+  },
+  iconLabel: {
+    marginLeft: 8,
+    fontSize: 16,
   },
 });
 
